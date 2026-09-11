@@ -1,26 +1,57 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+const { Pool } = require("pg");
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const BOOKINGS_FILE = path.join(__dirname, "bookings.json");
 
-// ==========================================
-// BASIC SERVER SETTINGS
-// ==========================================
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL
+        ? { rejectUnauthorized: false }
+        : false
+});
 
 app.use(cors());
 app.use(express.json());
-
-
-// ==========================================
-// SERVE THE WEBSITE
-// ==========================================
-
 app.use(express.static(__dirname));
+
+
+// ==========================================
+// CREATE DATABASE TABLE
+// ==========================================
+
+async function setupDatabase() {
+
+    try {
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS bookings (
+                id BIGSERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                massage TEXT NOT NULL,
+                date TEXT NOT NULL,
+                time TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'Pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(date, time)
+            );
+        `);
+
+        console.log("Database ready.");
+
+    } catch (error) {
+
+        console.error(
+            "Database setup error:",
+            error
+        );
+
+    }
+}
 
 
 // ==========================================
@@ -28,9 +59,11 @@ app.use(express.static(__dirname));
 // ==========================================
 
 app.get("/", (req, res) => {
+
     res.sendFile(
-        path.join(__dirname, "index.html")
+        __dirname + "/index.html"
     );
+
 });
 
 
@@ -38,7 +71,7 @@ app.get("/", (req, res) => {
 // CREATE BOOKING
 // ==========================================
 
-app.post("/booking", (req, res) => {
+app.post("/booking", async (req, res) => {
 
     const {
         name,
@@ -50,7 +83,6 @@ app.post("/booking", (req, res) => {
     } = req.body;
 
 
-    // CHECK REQUIRED INFORMATION
     if (
         !name ||
         !email ||
@@ -61,10 +93,14 @@ app.post("/booking", (req, res) => {
     ) {
 
         return res.status(400).json({
+
             success: false,
+
             message:
                 "Please complete all booking fields."
+
         });
+
     }
 
 
@@ -85,10 +121,14 @@ app.post("/booking", (req, res) => {
     if (date < today) {
 
         return res.status(400).json({
+
             success: false,
+
             message:
                 "Please select today or a future date."
+
         });
+
     }
 
 
@@ -108,103 +148,15 @@ app.post("/booking", (req, res) => {
     ) {
 
         return res.status(400).json({
+
             success: false,
+
             message:
                 "Please choose a time between 7:00 AM and 11:00 PM."
+
         });
+
     }
-
-
-    // ======================================
-    // LOAD EXISTING BOOKINGS
-    // ======================================
-
-    let bookings = [];
-
-
-    try {
-
-        if (
-            fs.existsSync(
-                BOOKINGS_FILE
-            )
-        ) {
-
-            const fileData =
-                fs.readFileSync(
-                    BOOKINGS_FILE,
-                    "utf8"
-                );
-
-            bookings =
-                JSON.parse(fileData);
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Could not read bookings:",
-            error
-        );
-
-        return res.status(500).json({
-            success: false,
-            message:
-                "Could not load bookings."
-        });
-    }
-
-
-    // ======================================
-    // PREVENT DOUBLE BOOKING
-    // ======================================
-
-    const alreadyBooked =
-        bookings.some(
-            booking =>
-                booking.date === date &&
-                booking.time === time
-        );
-
-
-    if (alreadyBooked) {
-
-        return res.status(409).json({
-            success: false,
-            message:
-                "This date and time is already booked. Please choose another time."
-        });
-    }
-
-
-    // ======================================
-    // CREATE NEW BOOKING
-    // ======================================
-
-    const newBooking = {
-
-        id: Date.now(),
-
-        name: name,
-
-        email: email,
-
-        phone: phone,
-
-        massage: massage,
-
-        date: date,
-
-        time: time,
-
-        status: "Pending",
-
-        createdAt:
-            new Date().toISOString()
-    };
-
-
-    bookings.push(newBooking);
 
 
     // ======================================
@@ -213,123 +165,213 @@ app.post("/booking", (req, res) => {
 
     try {
 
-        fs.writeFileSync(
-            BOOKINGS_FILE,
-            JSON.stringify(
-                bookings,
-                null,
-                2
-            )
+        const result =
+            await pool.query(
+
+                `
+                INSERT INTO bookings
+                (
+                    name,
+                    email,
+                    phone,
+                    massage,
+                    date,
+                    time
+                )
+
+                VALUES
+                ($1, $2, $3, $4, $5, $6)
+
+                RETURNING id;
+                `,
+
+                [
+                    name,
+                    email,
+                    phone,
+                    massage,
+                    date,
+                    time
+                ]
+
+            );
+
+
+        const bookingId =
+            result.rows[0].id;
+
+
+        console.log("");
+
+        console.log(
+            "================================"
         );
+
+        console.log(
+            "NEW LUXE MASSAGE BOOKING"
+        );
+
+        console.log(
+            "================================"
+        );
+
+        console.log(
+            "Name:",
+            name
+        );
+
+        console.log(
+            "Email:",
+            email
+        );
+
+        console.log(
+            "Phone:",
+            phone
+        );
+
+        console.log(
+            "Massage:",
+            massage
+        );
+
+        console.log(
+            "Date:",
+            date
+        );
+
+        console.log(
+            "Time:",
+            time
+        );
+
+        console.log(
+            "================================"
+        );
+
+        console.log("");
+
+
+        res.json({
+
+            success: true,
+
+            message:
+                "Booking saved successfully.",
+
+            bookingId:
+                bookingId
+
+        });
+
 
     } catch (error) {
 
+        // Duplicate date + time
+
+        if (
+            error.code === "23505"
+        ) {
+
+            return res.status(409).json({
+
+                success: false,
+
+                message:
+                    "This date and time is already booked. Please choose another time."
+
+            });
+
+        }
+
+
         console.error(
-            "Could not save booking:",
+            "Booking database error:",
             error
         );
 
-        return res.status(500).json({
+
+        res.status(500).json({
+
             success: false,
+
             message:
                 "Could not save your booking."
+
         });
+
     }
-
-
-    // ======================================
-    // SERVER CONSOLE
-    // ======================================
-
-    console.log("");
-    console.log(
-        "================================"
-    );
-    console.log(
-        "NEW LUXE MASSAGE BOOKING"
-    );
-    console.log(
-        "================================"
-    );
-    console.log(
-        "Name:",
-        newBooking.name
-    );
-    console.log(
-        "Email:",
-        newBooking.email
-    );
-    console.log(
-        "Phone:",
-        newBooking.phone
-    );
-    console.log(
-        "Massage:",
-        newBooking.massage
-    );
-    console.log(
-        "Date:",
-        newBooking.date
-    );
-    console.log(
-        "Time:",
-        newBooking.time
-    );
-    console.log(
-        "================================"
-    );
-    console.log("");
-
-
-    // ======================================
-    // SUCCESS RESPONSE
-    // ======================================
-
-    res.json({
-
-        success: true,
-
-        message:
-            "Booking saved successfully.",
-
-        bookingId:
-            newBooking.id
-    });
 
 });
 
 
 // ==========================================
-// GET BOOKINGS
-// ADMIN DASHBOARD USES THIS
+// GET ALL BOOKINGS
+// ADMIN DASHBOARD
 // ==========================================
 
-app.get("/bookings", (req, res) => {
+app.get("/bookings", async (req, res) => {
 
     try {
 
-        if (
-            !fs.existsSync(
-                BOOKINGS_FILE
-            )
-        ) {
+        const result =
+            await pool.query(`
 
-            return res.json([]);
-        }
+                SELECT
+                    id,
+                    name,
+                    email,
+                    phone,
+                    massage,
+                    date,
+                    time,
+                    status,
+                    created_at
 
+                FROM bookings
 
-        const fileData =
-            fs.readFileSync(
-                BOOKINGS_FILE,
-                "utf8"
-            );
+                ORDER BY id DESC;
+
+            `);
 
 
         const bookings =
-            JSON.parse(fileData);
+            result.rows.map(
+                booking => ({
+
+                    id:
+                        booking.id,
+
+                    name:
+                        booking.name,
+
+                    email:
+                        booking.email,
+
+                    phone:
+                        booking.phone,
+
+                    massage:
+                        booking.massage,
+
+                    date:
+                        booking.date,
+
+                    time:
+                        booking.time,
+
+                    status:
+                        booking.status,
+
+                    createdAt:
+                        booking.created_at
+
+                })
+            );
 
 
         res.json(bookings);
+
 
     } catch (error) {
 
@@ -338,12 +380,18 @@ app.get("/bookings", (req, res) => {
             error
         );
 
+
         res.status(500).json({
+
             success: false,
+
             message:
                 "Could not load bookings."
+
         });
+
     }
+
 });
 
 
@@ -353,7 +401,7 @@ app.get("/bookings", (req, res) => {
 
 app.get(
     "/booked-times",
-    (req, res) => {
+    async (req, res) => {
 
         const selectedDate =
             req.query.date;
@@ -362,61 +410,61 @@ app.get(
         if (!selectedDate) {
 
             return res.status(400).json({
+
                 success: false,
+
                 message:
                     "Please provide a date."
+
             });
+
         }
 
 
         try {
 
-            if (
-                !fs.existsSync(
-                    BOOKINGS_FILE
-                )
-            ) {
+            const result =
+                await pool.query(
 
-                return res.json([]);
-            }
+                    `
+                    SELECT time
+                    FROM bookings
+                    WHERE date = $1;
+                    `,
 
+                    [selectedDate]
 
-            const fileData =
-                fs.readFileSync(
-                    BOOKINGS_FILE,
-                    "utf8"
                 );
 
 
-            const bookings =
-                JSON.parse(fileData);
-
-
             const bookedTimes =
-                bookings
-                    .filter(
-                        booking =>
-                            booking.date ===
-                            selectedDate
-                    )
-                    .map(
-                        booking =>
-                            booking.time
-                    );
+                result.rows.map(
+                    booking =>
+                        booking.time
+                );
 
 
-            res.json(bookedTimes);
+            res.json(
+                bookedTimes
+            );
+
 
         } catch (error) {
 
             console.error(error);
 
+
             res.status(500).json({
+
                 success: false,
+
                 message:
                     "Could not load booked times."
+
             });
+
         }
+
     }
 );
 
@@ -425,29 +473,47 @@ app.get(
 // START SERVER
 // ==========================================
 
-app.listen(
-    PORT,
-    () => {
+async function startServer() {
 
-        console.log("");
-        console.log(
-            "================================"
-        );
-        console.log(
-            "       LUXE MASSAGE"
-        );
-        console.log(
-            "================================"
-        );
-        console.log(
-            `Website: http://localhost:${PORT}`
-        );
-        console.log(
-            `Admin:   http://localhost:${PORT}/admin.html`
-        );
-        console.log(
-            "================================"
-        );
-        console.log("");
-    }
-);
+    await setupDatabase();
+
+
+    app.listen(
+        PORT,
+        () => {
+
+            console.log("");
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "       LUXE MASSAGE"
+            );
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                `Website: http://localhost:${PORT}`
+            );
+
+            console.log(
+                `Admin:   http://localhost:${PORT}/admin.html`
+            );
+
+            console.log(
+                "================================"
+            );
+
+            console.log("");
+
+        }
+    );
+
+}
+
+
+startServer();
