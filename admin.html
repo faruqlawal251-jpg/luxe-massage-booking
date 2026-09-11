@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Luxe Massage | Admin
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f5f5f5;
+
+            color: #222;
+
+            padding: 30px;
+
+        }
+
+
+        .container {
+
+            max-width: 1200px;
+
+            margin: auto;
+
+        }
+
+
+        h1 {
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .subtitle {
+
+            color: #666;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        button {
+
+            padding:
+                12px 22px;
+
+            border: none;
+
+            border-radius: 25px;
+
+            background: #222;
+
+            color: white;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .table-container {
+
+            background: white;
+
+            border-radius: 15px;
+
+            overflow-x: auto;
+
+            box-shadow:
+                0 8px 25px
+                rgba(0,0,0,0.08);
+
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse:
+                collapse;
+
+            min-width: 850px;
+
+        }
+
+
+        th,
+        td {
+
+            padding: 15px;
+
+            text-align: left;
+
+            border-bottom:
+                1px solid #eee;
+
+        }
+
+
+        th {
+
+            background: #222;
+
+            color: white;
+
+        }
+
+
+        tr:hover {
+
+            background: #fafafa;
+
+        }
+
+
+        .status {
+
+            font-weight: bold;
+
+        }
+
+
+        #message {
+
+            margin-bottom: 15px;
+
+            color: #666;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        Luxe Massage Admin Dashboard
+    </h1>
+
+
+    <p class="subtitle">
+        View customer massage bookings.
+    </p>
+
+
+    <button
+        onclick="loadBookings()"
+    >
+        Refresh Bookings
+    </button>
+
+
+    <div id="message">
+        Loading bookings...
+    </div>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Customer
+                    </th>
+
+                    <th>
+                        Email
+                    </th>
+
+                    <th>
+                        Phone
+                    </th>
+
+                    <th>
+                        Massage
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th>
+                        Time
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="bookingTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+async function loadBookings() {
+
+    const table =
+        document.getElementById(
+            "bookingTable"
+        );
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    message.textContent =
+        "Loading bookings...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/bookings"
+            );
+
+
+        const bookings =
+            await response.json();
+
+
+        table.innerHTML =
+            "";
+
+
+        if (
+            bookings.length === 0
+        ) {
+
+            message.textContent =
+                "No bookings yet.";
+
+            return;
+        }
+
+
+        message.textContent =
+            `${bookings.length} booking(s) found.`;
+
+
+        bookings
+            .slice()
+            .reverse()
+            .forEach(
+                booking => {
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            ${escapeHTML(
+                                booking.name
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                booking.email
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                booking.phone
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                booking.massage
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                booking.date
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHTML(
+                                formatTime(
+                                    booking.time
+                                )
+                            )}
+                        </td>
+
+                        <td class="status">
+                            ${escapeHTML(
+                                booking.status
+                            )}
+                        </td>
+
+                    `;
+
+
+                    table.appendChild(
+                        row
+                    );
+
+                }
+            );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "Could not load bookings. Make sure the server is running.";
+    }
+
+}
+
+
+// ==========================================
+// SECURITY HELPER
+// ==========================================
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+// ==========================================
+// TIME FORMAT
+// ==========================================
+
+function formatTime(time) {
+
+    const parts =
+        time.split(":");
+
+    let hour =
+        Number(parts[0]);
+
+    const minutes =
+        parts[1];
+
+    const period =
+        hour >= 12
+            ? "PM"
+            : "AM";
+
+    hour =
+        hour % 12 || 12;
+
+    return `${hour}:${minutes} ${period}`;
+}
+
+
+loadBookings();
+
+</script>
+
+
+</body>
+
+</html>

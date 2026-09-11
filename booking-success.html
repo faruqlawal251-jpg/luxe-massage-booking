@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Luxe Massage | Booking Confirmed
+    </title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f7f7f7;
+
+            color: #222;
+
+            min-height: 100vh;
+
+            padding: 40px 20px;
+
+        }
+
+
+        .page {
+
+            width: 100%;
+
+            max-width: 700px;
+
+            margin: auto;
+
+            text-align: center;
+
+        }
+
+
+        .success-box {
+
+            background: white;
+
+            padding: 45px;
+
+            border-radius: 22px;
+
+            box-shadow:
+                0 15px 45px
+                rgba(0,0,0,0.12);
+
+        }
+
+
+        .checkmark {
+
+            width: 75px;
+
+            height: 75px;
+
+            margin:
+                0 auto 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #eeeeee;
+
+            font-size: 40px;
+
+            font-weight: bold;
+
+        }
+
+
+        h1 {
+
+            font-size: 36px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .message {
+
+            color: #555;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .booking-card {
+
+            text-align: left;
+
+            border:
+                2px solid #e5e5e5;
+
+            border-radius: 18px;
+
+            padding: 30px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .booking-card h2 {
+
+            text-align: center;
+
+            font-size: 21px;
+
+            margin-bottom: 22px;
+
+            letter-spacing: 1px;
+
+        }
+
+
+        .details {
+
+            padding: 20px;
+
+            background: #f7f7f7;
+
+            border-radius: 12px;
+
+        }
+
+
+        .details p {
+
+            margin: 12px 0;
+
+        }
+
+
+        .details strong {
+
+            display: inline-block;
+
+            width: 90px;
+
+        }
+
+
+        .thank-you {
+
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: #555;
+
+        }
+
+
+        .gift-card {
+
+            padding: 30px;
+
+            background: #f7f7f7;
+
+            border-radius: 18px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .gift-card h2 {
+
+            font-size: 21px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .gift-card p {
+
+            color: #555;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .gift-button,
+        .home-button {
+
+            display: inline-block;
+
+            padding:
+                14px 28px;
+
+            border-radius: 30px;
+
+            background: #222;
+
+            color: white;
+
+            text-decoration: none;
+
+            font-weight: bold;
+
+        }
+
+
+        .home-button {
+
+            margin-top: 5px;
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 20px 12px;
+            }
+
+            .success-box {
+                padding: 25px 18px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .booking-card {
+                padding: 20px;
+            }
+
+            .details strong {
+                width: 75px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="page">
+
+
+    <div class="success-box">
+
+
+        <div class="checkmark">
+            ✓
+        </div>
+
+
+        <h1>
+            Congratulations! 🎉
+        </h1>
+
+
+        <p class="message">
+            Your massage booking has been
+            submitted successfully.
+        </p>
+
+
+
+        <!-- BOOKING CARD -->
+
+        <div class="booking-card">
+
+            <h2>
+                YOUR LUXE MASSAGE BOOKING
+            </h2>
+
+
+            <div class="details">
+
+                <p>
+                    <strong>
+                        Name:
+                    </strong>
+
+                    <span id="customerName">
+                        Loading...
+                    </span>
+                </p>
+
+
+                <p>
+                    <strong>
+                        Massage:
+                    </strong>
+
+                    <span id="customerMassage">
+                        Loading...
+                    </span>
+                </p>
+
+
+                <p>
+                    <strong>
+                        Date:
+                    </strong>
+
+                    <span id="customerDate">
+                        Loading...
+                    </span>
+                </p>
+
+
+                <p>
+                    <strong>
+                        Time:
+                    </strong>
+
+                    <span id="customerTime">
+                        Loading...
+                    </span>
+                </p>
+
+            </div>
+
+
+            <p class="thank-you">
+
+                Thank you for choosing
+                Luxe Massage.
+
+                We look forward to
+                welcoming you.
+
+            </p>
+
+        </div>
+
+
+
+        <!-- APPLE GIFT CARD -->
+
+        <div class="gift-card">
+
+            <h2>
+                🎁 Want to Buy an Apple Gift Card?
+            </h2>
+
+
+            <p>
+
+                Visit Apple's official
+                gift-card page to see the
+                options available for your
+                country or region.
+
+            </p>
+
+
+            <a
+                href="https://www.apple.com/shop/gift-cards"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gift-button"
+            >
+                Buy an Apple Gift Card
+            </a>
+
+        </div>
+
+
+
+        <a
+            href="/index.html#booking"
+            class="home-button"
+        >
+            Make Another Booking
+        </a>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const savedBooking =
+        sessionStorage.getItem(
+            "luxeMassageBooking"
+        );
+
+
+    if (!savedBooking) {
+
+        document.getElementById(
+            "customerName"
+        ).textContent =
+            "Booking information unavailable";
+
+        document.getElementById(
+            "customerMassage"
+        ).textContent =
+            "-";
+
+        document.getElementById(
+            "customerDate"
+        ).textContent =
+            "-";
+
+        document.getElementById(
+            "customerTime"
+        ).textContent =
+            "-";
+
+    } else {
+
+        const booking =
+            JSON.parse(
+                savedBooking
+            );
+
+
+        document.getElementById(
+            "customerName"
+        ).textContent =
+            booking.name;
+
+
+        document.getElementById(
+            "customerMassage"
+        ).textContent =
+            booking.massage;
+
+
+        document.getElementById(
+            "customerDate"
+        ).textContent =
+            booking.date;
+
+
+        document.getElementById(
+            "customerTime"
+        ).textContent =
+            booking.time;
+
+    }
+
+</script>
+
+
+</body>
+
+</html>
