@@ -15,6 +15,53 @@ const pool = new Pool({
 
 app.use(cors());
 app.use(express.json());
+
+function adminAuth(req, res, next) {
+    const auth = req.headers.authorization;
+
+    if (!auth || !auth.startsWith("Basic ")) {
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="Luxe Massage Admin"'
+        );
+        return res.status(401).send("Authentication required.");
+    }
+
+    const credentials = Buffer.from(
+        auth.slice(6),
+        "base64"
+    ).toString("utf8");
+
+    const separator = credentials.indexOf(":");
+
+    const username =
+        separator >= 0 ? credentials.slice(0, separator) : "";
+
+    const password =
+        separator >= 0 ? credentials.slice(separator + 1) : "";
+
+    if (
+        username !== process.env.ADMIN_USER ||
+        password !== process.env.ADMIN_PASSWORD
+    ) {
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="Luxe Massage Admin"'
+        );
+        return res.status(401).send("Invalid credentials.");
+    }
+
+    next();
+}
+
+app.use((req, res, next) => {
+    if (req.path === "/admin.html" || req.path === "/bookings") {
+        return adminAuth(req, res, next);
+    }
+
+    next();
+});
+
 app.use(express.static(__dirname));
 
 
